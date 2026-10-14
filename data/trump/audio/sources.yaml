@@ -1,0 +1,16 @@
+# One entry per audio file in this folder. title, url, date and license are required.
+# Set solo: true for recordings with only the target speaker (skips diarization).
+# Name your downloads to match these keys and fill in the url of the copy you used; files with an
+# empty url are not ingested.
+2026-02-24_state_of_the_union.mp4:
+  title: "State of the Union Address, 24 February 2026"
+  url: ""
+  date: 2026-02-24
+  license: "US government work, public domain (17 U.S.C. 105)"
+  solo: true
+2025-03-04_joint_address.mp4:
+  title: "Address to a Joint Session of Congress, 4 March 2025"
+  url: ""
+  date: 2025-03-04
+  license: "US government work, public domain (17 U.S.C. 105)"
+  solo: true

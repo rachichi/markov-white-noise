@@ -21,6 +21,16 @@ data/omer/*
 # Raw voice recordings stay local.
 data/omer/audio/*
 !data/omer/audio/sources.yaml
+!data/trump/
+data/trump/*
+!data/trump/audio/
+data/trump/audio/*
+!data/trump/audio/sources.yaml
+!data/mamdani/
+data/mamdani/*
+!data/mamdani/audio/
+data/mamdani/audio/*
+!data/mamdani/audio/sources.yaml
 # Web exports stay local unless the speaker has agreed to publication (Omar El Housni has).
 public/speakers/*
 !public/speakers/omer/

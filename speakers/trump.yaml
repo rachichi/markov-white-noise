@@ -1,0 +1,35 @@
+name: "Donald Trump"
+slug: trump
+sources_dir: data/trump/audio     # official addresses; describe each file in data/trump/audio/sources.yaml
+reference_corpus: data/reference/general_english.txt
+
+# Two ~100-minute addresses (about 2.5 hours of speech once applause is dropped) cover the defaults.
+vocab:
+  function_words: 100
+  signature_words: 200
+  max_variants_per_entry: 3
+  frequent_max_variants: 6
+
+# The House chamber is reverberant and applause runs under the start and end of lines. If clips_report.md
+# rejects most takes for SNR, lower min_snr_db toward 6 as speakers/omer.yaml does.
+clips:
+  min_snr_db: 10
+
+chain:
+  order: 2
+  backoff_min_options: 2
+  end_token_pause_ms: [400, 800]
+
+audio:
+  target_lufs: -16
+  crossfade_ms: 15
+  clip_pad_ms: 20
+
+output:
+  mode: files
+  disclaimer_every_minutes: 5
+  blocklist: config/blocklist.txt
+  stream_title: "Markov Chain Remix: Donald Trump (not real statements)"
+  format: wav
+  tts:
+    engine: auto

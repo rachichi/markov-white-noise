@@ -1,0 +1,36 @@
+name: "Zohran Mamdani"
+slug: mamdani
+sources_dir: data/mamdani/audio   # speeches and remarks; describe each file in data/mamdani/audio/sources.yaml
+reference_corpus: data/reference/general_english.txt
+
+# His longest speeches are ~25 minutes, so start with the smaller vocabulary speakers/omer.yaml uses.
+# Move back toward the defaults (100 / 200, min_count unset) once there are 2 hours of speech.
+vocab:
+  function_words: 60
+  signature_words: 120
+  min_count: 3
+  max_variants_per_entry: 3
+
+# Outdoor inauguration and a cheering election-night crowd: start lenient, as speakers/omer.yaml does.
+clips:
+  min_snr_db: 6
+  min_ms_per_word: 50
+
+chain:
+  order: 2
+  backoff_min_options: 2
+  end_token_pause_ms: [400, 800]
+
+audio:
+  target_lufs: -16
+  crossfade_ms: 15
+  clip_pad_ms: 20
+
+output:
+  mode: files
+  disclaimer_every_minutes: 5
+  blocklist: config/blocklist.txt
+  stream_title: "Markov Chain Remix: Zohran Mamdani (not real statements)"
+  format: wav
+  tts:
+    engine: auto
