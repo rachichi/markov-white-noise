@@ -89,6 +89,17 @@ Source recordings are always git-ignored. Exports under `public/speakers/` are g
 
    Files without a title, URL, date and license are skipped. For recordings with other voices in them (questions, interviewers), leave out `solo` so that pyannote keeps only the target speaker. That needs `HF_TOKEN`; see Setup.
 
+   **How much audio:** aim for **about 2 hours of the person actually speaking**. The minimum is 1 hour, and gains get small after 3–4 hours.
+
+   | Solo speech | Result |
+   | ----------- | ------ |
+   | 10 min | ~1,400 words; under 40% of vocabulary entries have 3+ clean takes, so takes repeat and sentences lean on a few common words |
+   | 1 hour | common words well covered; still needs the lowered vocab settings below |
+   | **2 hours** | ~17,000 words; signature phrases get enough clean takes and the default settings work |
+   | 3–4 hours | more take variety and smoother joins; the chain itself barely improves |
+
+   Recording length isn't speech time. Only about 45% of a lecture survives the quality filters (silences, questions, echo), so 2 hours of speech can take around 3 hours of recordings. Solo recordings, a close microphone, and several sessions on different days help most. Stop adding audio once the coverage in `vocab_report.md` and `clips_report.md` stops climbing toward 90%.
+
 2. **Config:** copy [`speakers/example-speaker.yaml`](speakers/example-speaker.yaml) to `speakers/<slug>.yaml` and set `name`, `slug`, `sources_dir` and `output.stream_title`. Keep "remix" and "not real statements" (or similar) in the title.
 
    With under an hour of audio, lower the vocabulary targets as [`speakers/omer.yaml`](speakers/omer.yaml) does (`vocab.min_count: 3`, fewer `signature_words`). With 2 hours or more, the defaults work. `mvs vocab` and `mvs clips` print coverage reports listing which words still need more takes.
