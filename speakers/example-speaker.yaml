@@ -1,0 +1,35 @@
+# A speaker is just this file plus a folder of audio (sources_dir) with a sources.yaml sidecar.
+name: "Example Speaker"
+slug: example-speaker
+sources_dir: data/example-speaker/audio     # solo speeches, press conferences, long interviews
+reference_corpus: data/reference/general_english.txt   # for signature-word scoring
+
+isolation:
+  enrollment: null           # optional: path to a clean WAV of the target speaker for diarized sources
+
+vocab:
+  function_words: 100
+  signature_words: 200       # includes phrases (2-3 words)
+  max_variants_per_entry: 3  # the most frequent entries get frequent_max_variants
+  frequent_max_variants: 6
+
+chain:
+  order: 2                   # context length, with back-off to order 1
+  backoff_min_options: 2     # fall back to order 1 below this many distinct next words
+  end_token_pause_ms: [400, 800]
+
+audio:
+  target_lufs: -16
+  crossfade_ms: 15
+  clip_pad_ms: 20
+
+output:
+  mode: stream               # stream | files | both
+  disclaimer_every_minutes: 5
+  blocklist: config/blocklist.txt
+  stream_title: "Markov Chain Remix: Example Speaker (not real statements)"
+  file_chunk_minutes: 60     # used in files mode
+  format: mp3
+  bitrate_kbps: 128
+  tts:
+    engine: auto             # piper (set model), kokoro, espeak-ng, or say (macOS, for local testing)

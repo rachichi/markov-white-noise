@@ -1,0 +1,158 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 64px;
+  padding: 32px 16px 64px;
+}
+
+.intro {
+  max-width: 480px;
+  margin: 0 0 -32px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.speaker {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 480px;
+}
+
+.speaker__portrait {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.speaker__notice {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.player {
+  width: 100%;
+}
+
+.player__controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.player__play {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+}
+
+.player__play svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.player__wave {
+  flex: 1;
+  min-width: 0;
+  height: 64px;
+  color: var(--rl-ink, #1a1a1a);
+  cursor: pointer;
+}
+
+.player__text {
+  min-height: 3em;
+  margin: 20px 0 0;
+  text-align: center;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.player__text--disclaimer {
+  font-size: 14px;
+  color: var(--rl-ink-50);
+}
+
+.transitions {
+  width: 100%;
+  max-width: 1200px;
+  min-width: 0; /* let the matrix scroll inside instead of widening the page */
+}
+
+.transitions__caption {
+  margin: 8px 0 16px;
+  font-size: 14px;
+  color: var(--rl-ink-70);
+}
+
+.matrix {
+  max-width: 100%;
+  max-height: 70vh;
+  overflow: auto;
+  border: 1px solid var(--rl-ink-20);
+}
+
+.matrix table {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 11px;
+}
+
+.matrix td {
+  width: 14px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0;
+  border-right: 1px solid var(--rl-ink-10);
+  border-bottom: 1px solid var(--rl-ink-10);
+}
+
+.matrix th {
+  background: #fff;
+  font-weight: normal;
+  white-space: nowrap;
+}
+
+.matrix thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.matrix__col {
+  height: 120px;
+  vertical-align: bottom;
+  padding: 0 0 4px;
+  border-bottom: 1px solid var(--rl-ink-30);
+}
+
+.matrix__col span {
+  display: inline-block;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.matrix__row {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  padding: 0 8px;
+  text-align: right;
+  border-right: 1px solid var(--rl-ink-30);
+}
+
+.matrix__corner {
+  left: 0;
+  z-index: 2 !important;
+  padding: 0 8px 4px;
+  vertical-align: bottom;
+  text-align: right;
+  color: var(--rl-ink-50);
+  border-right: 1px solid var(--rl-ink-30);
+  border-bottom: 1px solid var(--rl-ink-30);
+}

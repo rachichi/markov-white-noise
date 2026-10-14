@@ -1,0 +1,36 @@
+name: "Omar El Housni"
+slug: omer
+sources_dir: data/omer/audio     # lectures and talks; describe each file in data/omer/audio/sources.yaml
+reference_corpus: data/reference/general_english.txt
+
+# One 10-minute lecture (~1,400 words) is far smaller than the brief's default corpus,
+# so the vocabulary is smaller and entries only need to appear 3 times.
+vocab:
+  function_words: 50
+  signature_words: 120
+  min_count: 3
+  max_variants_per_entry: 3
+
+# Lecture-hall audio: reverb lifts the local noise floor, and fast function words run short.
+clips:
+  min_snr_db: 6
+  min_ms_per_word: 50
+
+chain:
+  order: 2
+  backoff_min_options: 2
+  end_token_pause_ms: [400, 800]
+
+audio:
+  target_lufs: -16
+  crossfade_ms: 15
+  clip_pad_ms: 20
+
+output:
+  mode: files
+  disclaimer_every_minutes: 5
+  blocklist: config/blocklist.txt
+  stream_title: "Markov Chain Remix: Omar El Housni (not real statements)"
+  format: wav
+  tts:
+    engine: auto

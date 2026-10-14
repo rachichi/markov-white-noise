@@ -1,0 +1,24 @@
+node_modules
+dist
+.DS_Store
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+# Source audio is usually copyrighted and everything else is derived: keep it out of git.
+data/*/
+!data/reference/
+data/reference/*.txt
+!data/example-speaker/
+data/example-speaker/*
+!data/example-speaker/audio/
+data/example-speaker/audio/*
+!data/example-speaker/audio/sources.yaml
+# Omer's source recordings are committed to the repo; everything derived from them stays local.
+!data/omer/
+data/omer/*
+!data/omer/audio/
+# Voice recordings and everything exported from them stay local.
+data/omer/audio/*
+!data/omer/audio/sources.yaml
+public/speakers/

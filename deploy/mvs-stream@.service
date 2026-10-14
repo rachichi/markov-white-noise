@@ -1,0 +1,23 @@
+# Always-on stream for one speaker: systemctl enable --now mvs-stream@example-speaker
+# /etc/mvs/<speaker>.env must set MVS_ICECAST_URL=icecast://source:PASSWORD@host:8000/mount
+[Unit]
+Description=Markov Voice Stream (%i)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mvs
+WorkingDirectory=/opt/markov-white-noise
+EnvironmentFile=/etc/mvs/%i.env
+ExecStart=/opt/markov-white-noise/.venv/bin/mvs stream %i
+Restart=always
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=15
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/markov-white-noise/data
+
+[Install]
+WantedBy=multi-user.target

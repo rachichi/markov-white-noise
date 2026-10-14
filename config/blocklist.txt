@@ -1,0 +1,138 @@
+# Sentences containing any of these are discarded and resampled before they are rendered.
+# Terms match whole words and phrases. A trailing * matches word prefixes (use sparingly).
+# re: lines are regular expressions over the lowercased, punctuation-free sentence.
+# @include pulls in another file. [category] headers are for reporting only.
+
+[elections]
+vote
+votes
+voted
+voting
+voter
+voters
+ballot
+ballots
+election
+elections
+elect
+elected
+electoral
+reelect
+reelection
+reelected
+polls
+polling
+primary election
+primaries
+caucus
+caucuses
+midterm
+midterms
+absentee
+mail-in
+candidate
+candidates
+campaign
+campaigns
+nominee
+inauguration
+register to vote
+registered to vote
+rigged
+recount
+
+[calls to action]
+donate
+donation
+donations
+contribute
+contribution
+sign up
+call your
+go to
+visit
+click
+subscribe
+text
+join us
+join me
+join our
+get out and
+go out and
+show up
+turn out
+rise up
+take to the streets
+march on
+storm
+boycott
+spread the word
+share this
+tell your friends
+fight for me
+must act
+
+[threats]
+kill
+kills
+killed
+killing
+murder
+murdered
+shoot
+shooting
+shot
+gun
+guns
+bomb
+bombs
+bombed
+bombing
+explode
+blow up
+attack
+attacks
+attacked
+assassinate
+assassination
+hang
+hanged
+lynch
+execute
+executed
+execution
+behead
+stab
+stabbed
+burn down
+burn it down
+hurt
+beat up
+punch
+destroy them
+die
+dead
+death
+threat
+threaten
+weapon
+weapons
+violence
+violent
+
+[personal information]
+home address
+phone number
+social security
+date of birth
+password
+lives at
+lives on
+email
+re:\b(zero|oh|one|two|three|four|five|six|seven|eight|nine|\d+)(\s+(zero|oh|one|two|three|four|five|six|seven|eight|nine|\d+)){3,}\b
+re:\b\d{5,}\b
+re:\bdot (com|org|net|gov|edu)\b
+re:\bat (gmail|yahoo|hotmail|outlook)\b
+
+[slurs]
+@include blocklist-slurs.txt

@@ -1,0 +1,3 @@
+# Slurs and hate terms, one per line. This file ships empty on purpose: fill it from a maintained
+# list (for example the English list in LDNOOBW, "List of Dirty, Naughty, Obscene, and Otherwise
+# Bad Words") and review it for your speaker. mvs warns at startup while this category is empty.
