@@ -1,32 +1,25 @@
-"""Export files for the web page: a preview recording with sentence timings, and the transition matrix."""
+"""Export files for the web page, which generates sentences itself: the Markov chain, every playable word clip
+packed into one audio sprite, the blocklist terms the chain could produce, and the transition matrix."""
 
 from __future__ import annotations
 
 import json
 import logging
+import shutil
 from pathlib import Path
 
-import numpy as np
-
 from . import audio
-
+from .blocklist import Blocklist
 from .chain import END, START, load_chain
 from .clips import load_clips
-from .config import Speaker
-from .deliver import preview
+from .config import Speaker, require_disclosure
+from .deliver import disclosure_tags
+from .generator import SentenceGenerator
+from .tts import disclaimer_audio
 from .vocab import load_vocab
 
 log = logging.getLogger("mvs.web")
-PEAKS = 1000
-
-
-def waveform_peaks(path: Path, n: int = PEAKS) -> list[float]:
-    """Peak level per slice, 0-1, so the page can draw the waveform without decoding audio."""
-    x, _ = audio.read_wav(path)
-    edges = np.linspace(0, len(x), n + 1).astype(int)
-    peaks = np.array([np.abs(x[a:b]).max() if b > a else 0.0 for a, b in zip(edges, edges[1:])])
-    top = peaks.max() or 1.0
-    return [round(float(p / top), 3) for p in peaks]
+STALE = ("preview.wav", "preview.json", "stream.json", "disclaimer.mp3", "sentences")
 
 
 def transition_matrix(spk: Speaker, top: int = 0) -> dict:
@@ -60,22 +53,86 @@ def transition_matrix(spk: Speaker, top: int = 0) -> dict:
     }
 
 
-def export_web(spk: Speaker, out_dir: Path, n: int = 8, top: int = 0, seed: int | None = None) -> list[Path]:
-    out_dir.mkdir(parents=True, exist_ok=True)
-    timeline: list[dict] = []
-    preview(spk, n, out_dir / "preview.wav", seed=seed, timeline=timeline)
-    meta = {
+def reachable_blocklist(blocklist: Blocklist, tokens: set[str]) -> dict:
+    """Only the terms the chain could actually produce, so the page doesn't ship the whole list."""
+    words = {w for t in tokens for w in t.split()}
+    terms = sorted({t for ts in blocklist.terms.values() for t in ts if set(t) <= words})
+    prefixes = sorted({(head, pre) for head, pre in blocklist.prefixes
+                       if set(head) <= words and any(w.startswith(pre) for w in words)})
+    return {"terms": [list(t) for t in terms], "prefixes": [[list(h), p] for h, p in prefixes],
+            "patterns": [p.pattern for p in blocklist.patterns]}
+
+
+def generator_data(spk: Speaker, sprite_path: Path) -> dict:
+    """Everything the page needs to run SentenceGenerator itself. Clip audio goes into one WAV sprite."""
+    require_disclosure(spk)
+    gen = SentenceGenerator(spk)
+    playable = set(gen.clips)
+    keep = playable | {START}
+    table = {}
+    for ctx, options in gen.chain.table.items():
+        nxt = {t: c for t, c in options.items() if t in playable or t == END}
+        if nxt and set(ctx) <= keep:
+            table["\t".join(ctx)] = nxt
+
+    sr, cc, a = spk["audio"]["sample_rate"], spk["chain"], spk["audio"]
+    writer = audio.WavWriter(sprite_path, sr, disclosure_tags(spk))
+    try:
+        def put(x) -> list[int]:
+            offset = writer.data_bytes // 2
+            writer.write(x)
+            return [offset, len(x)]
+
+        disclaimer = put(disclaimer_audio(spk))
+        clips = {}
+        for token in sorted(playable):
+            clips[token] = []
+            for rec in gen.clips[token]:
+                x, clip_sr = audio.read_wav(spk.work_dir / rec["path"])
+                clips[token].append([*put(audio.resample(x, clip_sr, sr)), rec["prev"], rec["next"],
+                                     bool(rec["final"]), round(rec["clip_score"], 3)])
+    finally:
+        writer.close()
+
+    return {
         "name": spk.name,
         "title": spk.stream_title,
-        "disclaimer": spk.disclaimer_text,
         "description": spk.stream_description,
-        "duration": timeline[-1]["end"] if timeline else 0,
-        "peaks": waveform_peaks(out_dir / "preview.wav"),
-        "segments": timeline,
+        "disclaimer_text": spk.disclaimer_text,
+        "disclaimer_every": spk["output"]["disclaimer_every_minutes"] * 60,
+        "sample_rate": sr,
+        "sprite": sprite_path.name,
+        "disclaimer": disclaimer,
+        "order": gen.order,
+        "start": START,
+        "end": END,
+        "backoff_min_options": cc["backoff_min_options"],
+        "min_sentence_words": cc["min_sentence_words"],
+        "max_sentence_words": cc["max_sentence_words"],
+        "recent_sentences": cc["recent_sentences"],
+        "recent_clips": cc["recent_clips"],
+        "pause_ms": cc["end_token_pause_ms"],
+        "crossfade_ms": a["crossfade_ms"],
+        "peak_dbfs": a["peak_dbfs"],
+        "table": table,
+        "clips": clips,
+        "blocklist": reachable_blocklist(gen.blocklist, playable),
     }
-    (out_dir / "preview.json").write_text(json.dumps(meta, indent=1, ensure_ascii=False) + "\n")
+
+
+def export_web(spk: Speaker, out_dir: Path, top: int = 0) -> list[Path]:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for name in STALE:
+        stale = out_dir / name
+        if stale.is_dir():
+            shutil.rmtree(stale)
+        else:
+            stale.unlink(missing_ok=True)
+    data = generator_data(spk, out_dir / "clips.wav")
+    (out_dir / "generator.json").write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")) + "\n")
     matrix = transition_matrix(spk, top)
     (out_dir / "matrix.json").write_text(json.dumps(matrix, ensure_ascii=False, separators=(",", ":")) + "\n")
-    log.info("web export: %d segments, %d x %d matrix -> %s", len(timeline), len(matrix["rows"]),
+    log.info("web export: %d entries, %d clips, %d contexts, %d x %d matrix -> %s", len(data["clips"]),
+             sum(len(v) for v in data["clips"].values()), len(data["table"]), len(matrix["rows"]),
              len(matrix["columns"]), out_dir)
-    return [out_dir / "preview.wav", out_dir / "preview.json", out_dir / "matrix.json"]
+    return [out_dir / "generator.json", out_dir / "clips.wav", out_dir / "matrix.json"]

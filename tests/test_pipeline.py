@@ -136,14 +136,19 @@ def test_purge_removes_source_and_derived_clips(built):
 def test_export_web(built, tmp_path):
     from mvs.web import export_web
 
-    export_web(built, tmp_path / "web", n=3, seed=4)
-    meta = json.loads((tmp_path / "web" / "preview.json").read_text())
-    segs = meta["segments"]
-    assert segs[0]["kind"] == "disclaimer" and segs[0]["start"] == 0
-    assert sum(s["kind"] == "sentence" for s in segs) == 3
-    assert all(a["end"] == pytest.approx(b["start"], abs=1e-3) for a, b in zip(segs, segs[1:]))
-    x, sr = audio.read_wav(tmp_path / "web" / "preview.wav")
-    assert len(x) / sr == pytest.approx(segs[-1]["end"], abs=0.01)
+    paths = export_web(built, tmp_path / "web")
+    assert all(p.exists() for p in paths)
+    data = json.loads((tmp_path / "web" / "generator.json").read_text())
+    assert data["disclaimer_text"] == built.disclaimer_text
+    assert data["disclaimer_every"] == built["output"]["disclaimer_every_minutes"] * 60
+    x, sr = audio.read_wav(tmp_path / "web" / data["sprite"])
+    assert sr == data["sample_rate"]
+    spans = [data["disclaimer"]] + [c[:2] for clips in data["clips"].values() for c in clips]
+    assert all(off + n <= len(x) for off, n in spans) and spans[0][0] == 0
+    # Every token the chain can produce has a clip, and the start context exists.
+    assert "\t".join([data["start"]] * data["order"]) in data["table"]
+    for options in data["table"].values():
+        assert all(t == data["end"] or t in data["clips"] for t in options)
 
     m = json.loads((tmp_path / "web" / "matrix.json").read_text())
     assert m["rows"][0]["label"] == m["start"] and len(m["rows"]) == len(m["labels"]) + 1

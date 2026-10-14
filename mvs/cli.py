@@ -59,12 +59,10 @@ def _parser() -> argparse.ArgumentParser:
     s.add_argument("-o", "--out", help="output path (.wav, .mp3 or .opus); default <work_dir>/out/preview.wav")
     s.add_argument("--seed", type=int)
 
-    s = sub.add_parser("export-web", help="preview audio, sentence timings and transition matrix for the web page")
+    s = sub.add_parser("export-web", help="chain, word clips and transition matrix for the web page")
     s.add_argument("speaker")
-    s.add_argument("-n", type=int, default=8, help="sentences in the preview recording")
     s.add_argument("--top", type=int, default=0, help="limit the matrix to the N most frequent entries (0 = all)")
     s.add_argument("--out", help="output folder (default public/speakers/<slug>)")
-    s.add_argument("--seed", type=int)
 
     s = sub.add_parser("stream", help="stream to Icecast forever")
     s.add_argument("speaker")
@@ -152,7 +150,7 @@ def _run(args, spk: Speaker | None, root: Path) -> int:
         from .web import export_web
 
         out = Path(args.out) if args.out else root / "public" / "speakers" / spk.slug
-        for path in export_web(spk, out, args.n, args.top, args.seed):
+        for path in export_web(spk, out, args.top):
             print(path)
         return 0
     if cmd == "render":

@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { Label, PageShell, SiteFooter, SiteHeader } from "@rachichi/design";
-import { MatrixView } from "./MatrixView";
+import { Carousel } from "./Carousel";
+import { MatrixLegend, MatrixView } from "./MatrixView";
 import { Player } from "./Player";
 import { dataUrl, speakers } from "./speakers";
-import type { Matrix, PreviewMeta } from "./types";
-
-const speaker = speakers[0];
+import type { GeneratorData, Matrix } from "./types";
 
 async function getJson<T>(url: string): Promise<T | null> {
   try {
@@ -17,20 +16,28 @@ async function getJson<T>(url: string): Promise<T | null> {
 }
 
 export default function App() {
-  const [meta, setMeta] = useState<PreviewMeta | null>(null);
+  const [index, setIndex] = useState(speakers.findIndex((s) => s.slug === "omer"));
+  const speaker = speakers[index];
+  const [meta, setMeta] = useState<GeneratorData | null>(null);
   const [matrix, setMatrix] = useState<Matrix | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    let current = true;
+    setLoaded(false);
     Promise.all([
-      getJson<PreviewMeta>(dataUrl(speaker.slug, "preview.json")),
+      getJson<GeneratorData>(dataUrl(speaker.slug, "generator.json")),
       getJson<Matrix>(dataUrl(speaker.slug, "matrix.json")),
     ]).then(([m, x]) => {
+      if (!current) return;
       setMeta(m);
       setMatrix(x);
       setLoaded(true);
     });
-  }, []);
+    return () => {
+      current = false;
+    };
+  }, [speaker.slug]);
 
   return (
     <PageShell
@@ -45,18 +52,15 @@ export default function App() {
         </p>
 
         <section className="speaker">
-          <img className="speaker__portrait" src={speaker.portrait} alt={`Portrait of ${speaker.name}`} />
-          {meta ? (
-            <Player
-              src={dataUrl(speaker.slug, "preview.wav")}
-              segments={meta.segments}
-              peaks={meta.peaks}
-              duration={meta.duration}
-            />
+          <Carousel items={speakers} index={index} onChange={setIndex} />
+          <p className="speaker__name">{speaker.name}</p>
+          {loaded && meta ? (
+            <Player key={speaker.slug} data={meta} spriteUrl={dataUrl(speaker.slug, meta.sprite)} />
           ) : (
             loaded && (
               <p className="player__text player__text--disclaimer">
-                No audio yet. Run <code>mvs export-web {speaker.slug}</code> after building the pipeline.
+                No recordings of {speaker.name} yet. Add audio under <code>data/{speaker.slug}/audio/</code>, then run{" "}
+                <code>mvs export-web {speaker.slug}</code>.
               </p>
             )
           )}
@@ -65,15 +69,21 @@ export default function App() {
           </Label>
         </section>
 
-        {matrix && (
-          <section className="transitions">
-            <Label>Transition matrix</Label>
+        {loaded && matrix && (
+          <details className="transitions" key={speaker.slug}>
+            <summary>
+              <Label>Transition matrix</Label>
+              <span className="transitions__size">
+                {matrix.labels.length} × {matrix.labels.length}
+              </span>
+            </summary>
             <p className="transitions__caption">
               Probability of each next word or phrase given the current one, across {speaker.name}'s{" "}
-              {matrix.labels.length} most frequent playable entries. Darker is likelier.
+              {matrix.labels.length} most frequent playable entries.
             </p>
+            <MatrixLegend />
             <MatrixView matrix={matrix} />
-          </section>
+          </details>
         )}
       </main>
     </PageShell>

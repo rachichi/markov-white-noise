@@ -56,12 +56,65 @@ The suite runs stages 4-9 and purge on a synthetic speaker (tone-burst "words" w
 
 ## Web page
 
-`npm run dev` serves a Vite + React page built with `@rachichi/design`: the speaker's portrait, a play/pause button with the waveform of a preview recording, the sentence currently playing underneath, and the full scrollable transition matrix of their most frequent words and phrases.
+`npm install && npm run dev` serves a Vite + React page built with `@rachichi/design` at http://localhost:5173.
 
-The page reads what `mvs export-web <speaker>` writes to `public/speakers/<slug>/`:
+- **Speaker carousel:** portraits stand behind a fixed podium (`src/assets/podium.png`). Clicking ‹ ›, or a side portrait, turns the stage so the next speaker rotates in.
+- **Endless player:** sentences are generated live in the browser, word by word, from the speaker's transition matrix. `src/engine.ts` is a port of `mvs/generator.py` (order-2 chain with back-off, blocklist, choice of take per word, equal-power crossfades). Each sentence is scheduled on the Web Audio clock a few seconds ahead, so the waveform scrolls past the playhead showing real upcoming audio. The word being spoken is underlined. The spoken disclaimer plays first and then at most every `output.disclaimer_every_minutes`.
+- **Transition matrix:** collapsible, with a colour legend mapping shades to probabilities. It shows first-order P(next | word); the generator itself uses order 2 and backs off to order 1.
 
-- `preview.wav`: the spoken disclaimer plus `-n` generated sentences
-- `preview.json`: when each sentence starts and ends, so the text follows playback
-- `matrix.json`: first-order P(next | word) for every playable entry (`--top N` to trim)
+The page reads what `mvs export-web <speaker> [--top N]` writes to `public/speakers/<slug>/`:
 
-Speakers shown on the page are listed in `src/speakers.ts` (portraits in `src/assets/`). Exported `.wav` files are git-ignored.
+| File | Contents |
+| ---- | -------- |
+| `generator.json` | the chain (only transitions to playable entries), clip offsets, generator settings, the disclaimer text and interval, and the blocklist terms the chain could actually produce |
+| `clips.wav` | the spoken disclaimer followed by every playable word clip, as one 16-bit mono WAV |
+| `matrix.json` | first-order P(next \| word) for every playable entry (`--top N` keeps the N most frequent) |
+
+Source recordings are always git-ignored. Exports under `public/speakers/` are git-ignored too, except for speakers who have agreed to publication (`omer`). To publish another speaker's export, get their permission, note it in their `sources.yaml` license field, and add a `!public/speakers/<slug>/` line to `.gitignore`.
+
+## Adding a person
+
+**Before you start:** only use recordings you are allowed to use. That means a public, attributable source whose terms allow reuse, or your own recording made with the speaker's permission. Record the permission in `sources.yaml`. Don't use private conversations, and don't use anyone's voice to imitate endorsements, election messages or statements they didn't make. The output is a labelled remix of real clips, not a cloned voice, and the disclosure below can't be switched off.
+
+1. **Audio:** put the recordings in `data/<slug>/audio/` (any of wav, mp3, m4a, flac, ogg, opus, webm, mp4). Describe each file in `data/<slug>/audio/sources.yaml`:
+
+   ```yaml
+   20261014_lecture.m4a:
+     title: "Lecture, 14 October 2026"
+     url: "https://... (or: local recording, where it was made)"
+     date: 2026-10-14
+     license: "Recorded with permission"   # or the source's license / terms of use
+     solo: true                             # only this person speaks; skips diarization
+   ```
+
+   Files without a title, URL, date and license are skipped. For recordings with other voices in them (questions, interviewers), leave out `solo` so that pyannote keeps only the target speaker. That needs `HF_TOKEN`; see Setup.
+
+2. **Config:** copy [`speakers/example-speaker.yaml`](speakers/example-speaker.yaml) to `speakers/<slug>.yaml` and set `name`, `slug`, `sources_dir` and `output.stream_title`. Keep "remix" and "not real statements" (or similar) in the title.
+
+   With under an hour of audio, lower the vocabulary targets as [`speakers/omer.yaml`](speakers/omer.yaml) does (`vocab.min_count: 3`, fewer `signature_words`). With 2 hours or more, the defaults work. `mvs vocab` and `mvs clips` print coverage reports listing which words still need more takes.
+
+3. **Build:**
+
+   ```sh
+   mvs ingest <slug> && mvs transcribe <slug> && mvs vocab <slug> && mvs clips <slug> && mvs chain <slug>
+   mvs text <slug> -n 10        # sanity-check the sentences
+   mvs export-web <slug>        # writes public/speakers/<slug>/
+   ```
+
+4. **Page:** add a portrait (a transparent PNG cut out at the chest works best behind the podium) to `src/assets/`. Then add an entry to `src/speakers.ts`:
+
+   ```ts
+   import ada from "./assets/ada.png";
+   { slug: "ada", name: "Ada Lovelace", portrait: ada, bottomPadding: 0.05 },
+   ```
+
+   `bottomPadding` is the transparent margin below the figure as a fraction of the image height. Set it if the person floats above the podium. The order of `speakers` is the carousel order. A speaker with no export yet shows a "No recordings yet" note.
+
+**Adding more audio for an existing person:** drop the new files into `data/<slug>/audio/`, add them to `sources.yaml`, and rerun step 3. Only new files are transcribed. **Removing a recording:** `mvs purge --source <id or file name>` deletes it and every clip cut from it, rebuilds the clips and chain, and then you rerun `mvs export-web <slug>`.
+
+### Disclaimers to keep in place
+
+- The spoken disclaimer, the "Markov chain remix of real clips · not real statements" note under the player, and the "not real statements" stream title must stay visible and audible on any copy you publish.
+- `config/blocklist-slurs.txt` is empty. Fill it from a maintained list (for example LDNOOBW) before publishing anything.
+- `SOURCES.md` in each speaker's work folder lists every recording used. Publish it alongside the audio, and honour removal requests with `mvs purge`.
+- Public figures are included for parody and study of speech patterns. Don't publish output that could be mistaken for a genuine statement, and don't publish it around elections.

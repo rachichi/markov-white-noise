@@ -1,5 +1,23 @@
 import type { Matrix } from "./types";
 
+/** Cell shade for a probability; sqrt so rare transitions stay visible. */
+export const shade = (p: number) => `rgba(26, 26, 26, ${Math.sqrt(p).toFixed(3)})`;
+
+const LEGEND = [0.01, 0.05, 0.1, 0.25, 0.5, 1];
+
+export function MatrixLegend() {
+  return (
+    <ul className="legend" aria-label="Colour legend">
+      {LEGEND.map((p) => (
+        <li key={p}>
+          <span className="legend__swatch" style={{ background: shade(p) }} />
+          {p * 100}%
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 const display = (m: Matrix, t: string) => (t === m.start ? "(start)" : t === m.end ? "(end)" : t);
 
 export function MatrixView({ matrix }: { matrix: Matrix }) {
@@ -29,7 +47,7 @@ export function MatrixView({ matrix }: { matrix: Matrix }) {
                   return (
                     <td
                       key={c}
-                      style={p ? { background: `rgba(26, 26, 26, ${Math.sqrt(p).toFixed(3)})` } : undefined}
+                      style={p ? { background: shade(p) } : undefined}
                       title={`${display(matrix, row.label)} → ${display(matrix, c)}: ${(p * 100).toFixed(1)}%`}
                     />
                   );
