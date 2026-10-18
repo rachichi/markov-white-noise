@@ -45,11 +45,27 @@ export default function App() {
       footer={<SiteFooter stack="python, whisperx, react, typescript" />}
     >
       <main className="page">
-        <p className="intro">
-          Professor Omar El Housni taught us about Markov Chains transition matrixes as a generative tool, so I
-          created one using a recording of the lecture in which he taught us about Markov Chains transition
-          matrixes. Now you can tune in to his lectures as you study for the prelim next Monday.
-        </p>
+        {speaker.intro && (
+          <div className="intro" key={`intro-${speaker.slug}`}>
+            <p>{speaker.intro}</p>
+            {speaker.sources && (
+              <>
+                <ul className="intro__sources">
+                  {speaker.sources.map((src) => (
+                    <li key={src.url}>
+                      <a href={src.url} target="_blank" rel="noreferrer">
+                        {src.title}
+                      </a>{" "}
+                      <span className="intro__meta">
+                        · {src.used} · {src.words.toLocaleString()} words
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        )}
 
         <section className="speaker">
           <Carousel items={speakers} index={index} onChange={setIndex} />

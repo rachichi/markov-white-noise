@@ -14,3 +14,24 @@
   date: 2025-03-04
   license: "US government work, public domain (17 U.S.C. 105)"
   solo: true
+# Trimmed from the YouTube copy to the solo window (originals in data/trump/raw/): 01:00-16:50.
+2017-01-20_inauguration.flac:
+  title: "Inaugural Address, 20 January 2017"
+  url: "https://www.youtube.com/watch?v=zHp1SGTfRMs"
+  date: 2017-01-20
+  license: "Speech is a US government work, public domain (17 U.S.C. 105); recording from a YouTube upload (uploader's terms)"
+  solo: true
+# Solo window 02:00-1:10:45.
+2016-07-21_rnc_acceptance.flac:
+  title: "Republican National Convention acceptance speech, 21 July 2016"
+  url: "https://www.youtube.com/watch?v=va9ilyjMyik"
+  date: 2016-07-21
+  license: "YouTube upload, uploader's terms; used locally for study, not cleared for publication"
+  solo: true
+# Solo window 06:00-1:31:53.
+2026-10-17_rally_highland_heights.flac:
+  title: "Rally remarks, Highland Heights, KY, 17 October 2026"
+  url: "https://www.youtube.com/watch?v=0hJmlrSVmtM"
+  date: 2026-10-17
+  license: "YouTube upload, uploader's terms; used locally for study, not cleared for publication"
+  solo: true
