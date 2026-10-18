@@ -34,3 +34,4 @@ data/mamdani/audio/*
 # Web exports stay local unless the speaker has agreed to publication (Omar El Housni has).
 public/speakers/*
 !public/speakers/omer/
+!public/speakers/trump/
