@@ -31,14 +31,6 @@ DEFAULTS: dict = {
         "batch_size": 8,
         "min_word_score": 0.5,
     },
-    "isolation": {
-        "enabled": True,
-        "enrollment": None,  # path to a clean sample of the target speaker
-        "enrollment_threshold": 0.5,
-        "hf_token_env": "HF_TOKEN",
-        "diarization_model": "pyannote/speaker-diarization-3.1",
-        "embedding_model": "pyannote/wespeaker-voxceleb-resnet34-LM",
-    },
     "vocab": {
         "function_words": 100,
         "signature_words": 200,

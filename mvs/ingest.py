@@ -102,7 +102,6 @@ def ingest(spk: Speaker, force: bool = False) -> list[str]:
             "url": meta["url"],
             "date": str(meta["date"]),
             "license": meta["license"],
-            "solo": bool(meta.get("solo", False)),
             "duration_s": round(len(x) / sr, 2),
             "added": (existing or {}).get("added") or now_iso(),
         })

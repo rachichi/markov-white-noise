@@ -15,8 +15,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Stages 2-3 (transcription, forced alignment, diarization). Heavy: pulls in torch.
-align = ["whisperx>=3.1", "pyannote.audio>=3.1"]
+# Stages 2-3 (transcription and forced alignment). Heavy: pulls in torch.
+align = ["whisperx>=3.1"]
 # Disclaimer voice. Piper is the default; espeak-ng (system package) also works.
 tts = ["piper-tts>=1.2"]
 dev = ["pytest>=8"]

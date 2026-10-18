@@ -1,5 +1,5 @@
 # One entry per audio file in this folder. title, url, date and license are required.
-# Set solo: true for recordings with only the target speaker (skips diarization).
+# Every recording must contain only the target speaker; trim anything else out first.
 # Name your downloads to match these keys and fill in the url and license of the copy you used; files
 # with an empty url or license are not ingested. NYC material is not automatically public domain.
 2026-01-01_inaugural_address.mp4:
@@ -7,16 +7,13 @@
   url: ""
   date: 2026-01-01
   license: ""
-  solo: true
 2025-11-04_victory_speech.mp4:
   title: "Election Night Victory Speech, 4 November 2025"
   url: ""
   date: 2025-11-04
   license: ""
-  solo: true
 2026-05-01_rpa_assembly.mp4:
   title: "Remarks at the 2026 RPA Assembly, 1 May 2026"
   url: ""
   date: 2026-05-01
   license: ""
-  solo: true

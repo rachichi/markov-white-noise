@@ -1,5 +1,5 @@
 # Always-on stream image: generator, assembly, disclaimer TTS (espeak-ng) and ffmpeg.
-# Stages 2-3 (WhisperX, pyannote) need torch and usually a GPU; build with --build-arg WITH_ALIGN=1 for those.
+# Stages 2-3 (WhisperX) need torch and usually a GPU; build with --build-arg WITH_ALIGN=1 for those.
 FROM python:3.11-slim
 
 ARG WITH_ALIGN=0

@@ -1,11 +1,8 @@
 # A speaker is just this file plus a folder of audio (sources_dir) with a sources.yaml sidecar.
 name: "Example Speaker"
 slug: example-speaker
-sources_dir: data/example-speaker/audio     # solo speeches, press conferences, long interviews
+sources_dir: data/example-speaker/audio     # solo speeches and lectures, trimmed to the speaker alone
 reference_corpus: data/reference/general_english.txt   # for signature-word scoring
-
-isolation:
-  enrollment: null           # optional: path to a clean WAV of the target speaker for diarized sources
 
 vocab:
   function_words: 100

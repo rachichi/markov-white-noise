@@ -1,10 +1,9 @@
 # One entry per audio file in this folder. title, url, date and license are required.
-# Set solo: true for recordings with only the target speaker (skips diarization).
+# Every recording must contain only the target speaker; trim anything else out first.
 #
 # speech-2024-05-01.mp3:
 #   title: "Commencement address"
 #   url: "https://example.org/archive/commencement-2024"
 #   date: 2024-05-01
 #   license: "Public domain (government work)"
-#   solo: true
 {}

@@ -36,10 +36,9 @@ def _parser() -> argparse.ArgumentParser:
     s.add_argument("--title")
     s.add_argument("--date")
     s.add_argument("--license", help="license or terms of use")
-    s.add_argument("--solo", action="store_true", help="only the target speaker is in this recording")
     s.add_argument("--force", action="store_true")
 
-    s = sub.add_parser("transcribe", help="stages 2-3: WhisperX transcription/alignment, then speaker isolation")
+    s = sub.add_parser("transcribe", help="stages 2-3: WhisperX transcription and word alignment")
     s.add_argument("speaker")
     s.add_argument("--force", action="store_true")
 
@@ -104,8 +103,8 @@ def _run(args, spk: Speaker | None, root: Path) -> int:
         from .ingest import add_remote_source, ingest
 
         if args.url:
-            add_remote_source(spk, args.url, {"title": args.title, "date": args.date, "license": args.license,
-                                              "solo": args.solo or None}, args.filename)
+            add_remote_source(spk, args.url, {"title": args.title, "date": args.date, "license": args.license},
+                                         args.filename)
         skipped = ingest(spk, force=args.force)
         return 1 if skipped else 0
     if cmd == "transcribe":

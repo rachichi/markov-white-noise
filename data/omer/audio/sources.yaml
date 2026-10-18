@@ -1,8 +1,7 @@
 # One entry per audio file in this folder. title, url, date and license are required.
-# Set solo: true for recordings with only the target speaker (skips diarization).
+# Every recording must contain only the target speaker; trim anything else out first.
 20261014_lecture.m4a:
   title: "Lecture, 14 October 2026"
   url: "local recording (data/omer/audio/20261014_lecture.m4a)"
   date: 2026-10-14
   license: "Recorded and published with the speaker's permission"
-  solo: true

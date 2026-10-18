@@ -19,11 +19,11 @@ These rules are enforced, not optional. `preview`, `render` and `stream` refuse 
 
 ```sh
 python3.12 -m venv .venv && .venv/bin/pip install -e '.[dev]'   # core: generator, assembly, delivery
-.venv/bin/pip install -e '.[align]'                              # stages 2-3: WhisperX + pyannote (torch)
+.venv/bin/pip install -e '.[align]'                              # stages 2-3: WhisperX (torch)
 brew install ffmpeg                                              # MP3/Opus output, streaming, non-WAV input
 ```
 
-Diarization uses gated pyannote models: accept their terms on Hugging Face and set `HF_TOKEN`. Signature-word scoring needs a reference corpus at `data/reference/general_english.txt` (see [its README](data/reference/README.md)).
+Signature-word scoring needs a reference corpus at `data/reference/general_english.txt` (see [its README](data/reference/README.md)).
 
 Disclaimer voice: Piper (`output.tts.engine: piper` with `model: path/to/voice.onnx`), Kokoro, espeak-ng, or macOS `say` for local testing. `auto` tries them in that order.
 
@@ -31,7 +31,7 @@ Disclaimer voice: Piper (`output.tts.engine: piper` with `model: path/to/voice.o
 
 ```sh
 mvs ingest <speaker>        # 1  convert audio in sources_dir (described in its sources.yaml) -> SOURCES.md
-mvs transcribe <speaker>    # 2-3 WhisperX words + timestamps, pyannote speaker isolation
+mvs transcribe <speaker>    # 2-3 WhisperX words + timestamps
 mvs vocab <speaker>         # 4  function + signature words/phrases; vocab_report.md lists gaps
 mvs clips <speaker>         # 5  cut, score, keep the best variants; clips_report.md
 mvs chain <speaker>         # 6  order-n transition counts with back-off -> chain.json
@@ -52,13 +52,14 @@ The stream writes through `ffmpeg -re` to Icecast, reconnects with backoff (each
 .venv/bin/pytest
 ```
 
-The suite runs stages 4-9 and purge on a synthetic speaker (tone-burst "words" with known timestamps), plus the blocklist suite, the disclosure gate, loudness against the BS.1770 reference tone, and the disclaimer schedule and maximum-gap checks. WhisperX, pyannote, ffmpeg and Icecast are not exercised by the tests.
+The suite runs stages 4-9 and purge on a synthetic speaker (tone-burst "words" with known timestamps), plus the blocklist suite, the disclosure gate, loudness against the BS.1770 reference tone, and the disclaimer schedule and maximum-gap checks. WhisperX, ffmpeg and Icecast are not exercised by the tests.
 
 ## Web page
 
 `npm install && npm run dev` serves a Vite + React page built with `@rachichi/design` at http://localhost:5173.
 
 - **Speaker carousel:** portraits stand behind a fixed podium (`src/assets/podium.png`). Clicking ‹ ›, or a side portrait, turns the stage so the next speaker rotates in.
+- **Speaker blurb:** the paragraph above the carousel belongs to the speaker at the podium and slides in when the stage turns. It comes from that speaker's `intro` in `src/speakers.ts`, with an optional list of the source recordings (title, link, part used, word count).
 - **Endless player:** sentences are generated live in the browser, word by word, from the speaker's transition matrix. `src/engine.ts` is a port of `mvs/generator.py` (order-2 chain with back-off, blocklist, choice of take per word, equal-power crossfades). Each sentence is scheduled on the Web Audio clock a few seconds ahead, so the waveform scrolls past the playhead showing real upcoming audio. The word being spoken is underlined. The spoken disclaimer plays first and then at most every `output.disclaimer_every_minutes`.
 - **Transition matrix:** collapsible, with a colour legend mapping shades to probabilities. It shows first-order P(next | word); the generator itself uses order 2 and backs off to order 1.
 
@@ -70,7 +71,7 @@ The page reads what `mvs export-web <speaker> [--top N]` writes to `public/speak
 | `clips.wav` | the spoken disclaimer followed by every playable word clip, as one 16-bit mono WAV |
 | `matrix.json` | first-order P(next \| word) for every playable entry (`--top N` keeps the N most frequent) |
 
-Source recordings are always git-ignored. Exports under `public/speakers/` are git-ignored too, except for speakers who have agreed to publication (`omer`). To publish another speaker's export, get their permission, note it in their `sources.yaml` license field, and add a `!public/speakers/<slug>/` line to `.gitignore`.
+Source recordings are always git-ignored. Exports under `public/speakers/` are git-ignored too, except for `omer`, who agreed to publication, and `trump`, whose clips come from public speeches. To publish another speaker's export, get their permission (or check that the source terms allow it), note it in their `sources.yaml` license field, and add a `!public/speakers/<slug>/` line to `.gitignore`.
 
 ## Adding a person
 
@@ -84,10 +85,17 @@ Source recordings are always git-ignored. Exports under `public/speakers/` are g
      url: "https://... (or: local recording, where it was made)"
      date: 2026-10-14
      license: "Recorded with permission"   # or the source's license / terms of use
-     solo: true                             # only this person speaks; skips diarization
    ```
 
-   Files without a title, URL, date and license are skipped. For recordings with other voices in them (questions, interviewers), leave out `solo` so that pyannote keeps only the target speaker. That needs `HF_TOKEN`; see Setup.
+   **Every recording must be solo:** only this person speaking, with no questions, interviewers or introductions. There's no speaker separation, so trim each recording to the stretch where they speak alone, and keep the untrimmed original out of `sources_dir`:
+
+   ```sh
+   ffmpeg -ss 00:02:00 -to 01:10:45 -i original.mp3 -map 0:a -ac 1 -c:a flac data/<slug>/audio/2016-07-21_speech.flac
+   ```
+
+   Re-encode rather than `-c copy`: downloads named `.mp3` are sometimes Opus inside, and copying the stream breaks the timestamps.
+
+   Files without a title, URL, date and license are skipped.
 
    **How much audio:** aim for **about 2 hours of the person actually speaking**. The minimum is 1 hour, and gains get small after 3–4 hours.
 
@@ -98,7 +106,7 @@ Source recordings are always git-ignored. Exports under `public/speakers/` are g
    | **2 hours** | ~17,000 words; signature phrases get enough clean takes and the default settings work |
    | 3–4 hours | more take variety and smoother joins; the chain itself barely improves |
 
-   Recording length isn't speech time. Only about 45% of a lecture survives the quality filters (silences, questions, echo), so 2 hours of speech can take around 3 hours of recordings. Solo recordings, a close microphone, and several sessions on different days help most. Stop adding audio once the coverage in `vocab_report.md` and `clips_report.md` stops climbing toward 90%.
+   Recording length isn't speech time. Only about 45% of a lecture survives the quality filters (silences, questions, echo), so 2 hours of speech can take around 3 hours of recordings. A close microphone, and several sessions on different days help most. Stop adding audio once the coverage in `vocab_report.md` and `clips_report.md` stops climbing toward 90%.
 
 2. **Config:** copy [`speakers/example-speaker.yaml`](speakers/example-speaker.yaml) to `speakers/<slug>.yaml` and set `name`, `slug`, `sources_dir` and `output.stream_title`. Keep "remix" and "not real statements" (or similar) in the title.
 
@@ -116,10 +124,17 @@ Source recordings are always git-ignored. Exports under `public/speakers/` are g
 
    ```ts
    import ada from "./assets/ada.png";
-   { slug: "ada", name: "Ada Lovelace", portrait: ada, bottomPadding: 0.05 },
+   {
+     slug: "ada",
+     name: "Ada Lovelace",
+     portrait: ada,
+     bottomPadding: 0.05,
+     intro: "What these recordings are and how the chain was built from them.",
+     sources: [{ title: "Lecture, 14 October 2026", url: "https://...", used: "00:00–52:10", words: 7300 }],
+   },
    ```
 
-   `bottomPadding` is the transparent margin below the figure as a fraction of the image height. Set it if the person floats above the podium. The order of `speakers` is the carousel order. A speaker with no export yet shows a "No recordings yet" note.
+   `intro` and `sources` are optional and fill the blurb above the carousel. `bottomPadding` is the transparent margin below the figure as a fraction of the image height. Set it if the person floats above the podium. The order of `speakers` is the carousel order. A speaker with no export yet shows a "No recordings yet" note.
 
 **Adding more audio for an existing person:** drop the new files into `data/<slug>/audio/`, add them to `sources.yaml`, and rerun step 3. Only new files are transcribed. **Removing a recording:** `mvs purge --source <id or file name>` deletes it and every clip cut from it, rebuilds the clips and chain, and then you rerun `mvs export-web <slug>`.
 

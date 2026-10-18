@@ -104,7 +104,7 @@ def speaker(project: Path):
     for k, sid in enumerate(("speech-a", "speech-b")):
         write_source(spk, sid, make_sentences(rng, 60), seed=k)
         meta = {"title": f"Speech {k}", "url": f"https://example.org/{sid}", "date": "2024-01-01",
-                "license": "test fixture", "solo": True}
+                "license": "test fixture"}
         sidecar[f"{sid}.wav"] = meta
         manifest.upsert({"id": sid, "file": f"{sid}.wav", **meta, "duration_s": 0, "added": "2024-01-01T00:00:00Z"})
     manifest.save()

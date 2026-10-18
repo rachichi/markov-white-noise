@@ -32,7 +32,7 @@ def write_sidecar(spk: Speaker, data: dict[str, dict]) -> None:
     spk.sources_dir.mkdir(parents=True, exist_ok=True)
     header = (
         "# One entry per audio file in this folder. title, url, date and license are required.\n"
-        "# Set solo: true for recordings with only the target speaker (skips diarization).\n"
+        "# Every recording must contain only the target speaker; trim anything else out first.\n"
     )
     spk.sidecar_path.write_text(header + yaml.safe_dump(data, sort_keys=True, allow_unicode=True))
 
@@ -86,14 +86,14 @@ def render_sources_md(spk: Speaker, sources: list[dict]) -> str:
         "",
         "To remove a source and every clip derived from it: `mvs purge --source <id>`.",
         "",
-        "| ID | Title | URL | Date | License / terms | Solo | File | Added |",
-        "| -- | ----- | --- | ---- | --------------- | ---- | ---- | ----- |",
+        "| ID | Title | URL | Date | License / terms | File | Added |",
+        "| -- | ----- | --- | ---- | --------------- | ---- | ----- |",
     ]
     for s in sources:
         lines.append("| " + " | ".join(_cell(s.get(k)) for k in
-                     ("id", "title", "url", "date", "license", "solo", "file", "added")) + " |")
+                     ("id", "title", "url", "date", "license", "file", "added")) + " |")
     if not sources:
-        lines.append("| _none yet_ | | | | | | | |")
+        lines.append("| _none yet_ | | | | | | |")
     return "\n".join(lines) + "\n"
 
 
